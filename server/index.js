@@ -4,10 +4,23 @@ import mongoose from 'mongoose';
 import cors from 'cors';
 import postRoutes from './routes/posts.js';
 import dotenv from 'dotenv';
+import client from 'prom-client'; // Metric Collection
 
 dotenv.config();
 
 const app = express();
+
+//Use Prometheus
+const collectDefaultMetrics = client.collectDefaultMetrics;
+
+collectDefaultMetrics({register: client.register});
+
+// Route For Metrics
+app.get('/metrics', async(req, res) =>{
+    res.setHeader('Content-Type', client.register.contentType);
+    const metrics = await client.register.metrics();
+    res.send(metrics);
+});
 
 app.use('/posts', postRoutes);
 
